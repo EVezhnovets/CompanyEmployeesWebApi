@@ -10,6 +10,7 @@ LogManager.LoadConfiguration(configFile: string.Concat(Directory.GetCurrentDirec
 builder.Services.ConfigureCors();
 builder.Services.ConfigureIISIntegration();
 builder.Services.ConfigureLoggerService();
+builder.Services.ConfigureRepositoryManager();
 
 builder.Services.AddControllers();
 
