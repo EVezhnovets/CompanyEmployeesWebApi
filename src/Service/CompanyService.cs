@@ -20,8 +20,7 @@ namespace Service
 
         public IEnumerable<CompanyDto> GetAllCompanies(bool trackChanges)
         {
-            try
-            {
+            
                 var companies = _repository.Company.GetAllCompanies(trackChanges);
 
                 var companiesDto = _mapper.Map<IEnumerable<CompanyDto>>(companies);
@@ -33,12 +32,14 @@ namespace Service
                 //    string.Join(' ', c.Address, c.Country)))
                 //    .ToList();
                 return companiesDto;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Something went wrong in the{nameof(GetAllCompanies)} service method { ex}");
-                throw;
-            }
+            //try
+            //{
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError($"Something went wrong in the{nameof(GetAllCompanies)} service method { ex}");
+            //    throw;
+            //}
         }
     }
 }
