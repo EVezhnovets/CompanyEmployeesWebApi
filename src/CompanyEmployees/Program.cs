@@ -25,21 +25,21 @@ builder.Services.ConfigureLoggerService();
 builder.Services.ConfigureRepositoryManager();
 builder.Services.ConfigureServiceManager();
 builder.Services.AddAutoMapper(typeof(Program));
-builder.Services.AddControllers(config =>
-{
-    config.RespectBrowserAcceptHeader = true;
-    config.ReturnHttpNotAcceptable = true;
-    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
-}).AddXmlDataContractSerializerFormatters();
-
 //builder.Services.AddControllers(config =>
 //{
 //    config.RespectBrowserAcceptHeader = true;
 //    config.ReturnHttpNotAcceptable = true;
 //    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
-//})  .AddXmlDataContractSerializerFormatters()
-//    .AddCustomCSVFormatter()
-//    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
+//}).AddXmlDataContractSerializerFormatters();
+
+builder.Services.AddControllers(config =>
+{
+    config.RespectBrowserAcceptHeader = true;
+    config.ReturnHttpNotAcceptable = true;
+    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+}).AddXmlDataContractSerializerFormatters()
+    .AddCustomCSVFormatter()
+    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
