@@ -2,9 +2,19 @@ using CompanyEmployees.Extensions;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Options;
 using NLog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter() => new ServiceCollection()
+    .AddLogging()
+    .AddMvc()
+    .AddNewtonsoftJson()
+    .Services.BuildServiceProvider()
+    .GetRequiredService<IOptions<MvcOptions>>().Value.InputFormatters
+    .OfType<NewtonsoftJsonPatchInputFormatter>().First();
 
 LogManager.LoadConfiguration(configFile: string.Concat(Directory.GetCurrentDirectory(),"/nlog.config"));
 
@@ -19,9 +29,17 @@ builder.Services.AddControllers(config =>
 {
     config.RespectBrowserAcceptHeader = true;
     config.ReturnHttpNotAcceptable = true;
-})  .AddXmlDataContractSerializerFormatters()
-    .AddCustomCSVFormatter()
-    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
+    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+}).AddXmlDataContractSerializerFormatters();
+
+//builder.Services.AddControllers(config =>
+//{
+//    config.RespectBrowserAcceptHeader = true;
+//    config.ReturnHttpNotAcceptable = true;
+//    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+//})  .AddXmlDataContractSerializerFormatters()
+//    .AddCustomCSVFormatter()
+//    .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
@@ -29,6 +47,8 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
+
 
 var app = builder.Build();
 
@@ -39,6 +59,7 @@ var app = builder.Build();
 //    app.UseHsts();
 
 var logger = app.Services.GetRequiredService<ILoggerManager>();
+
 app.ConfigureExceptionHandler(logger);
 if (app.Environment.IsProduction())
     app.UseHsts();
