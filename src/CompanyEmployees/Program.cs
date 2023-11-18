@@ -1,4 +1,5 @@
 using CompanyEmployees.Extensions;
+using CompanyEmployees.Presentation.ActionFilters;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 //    config.ReturnHttpNotAcceptable = true;
 //    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
 //}).AddXmlDataContractSerializerFormatters();
+builder.Services.AddScoped<ValidationFilterAttribute>();
 
 builder.Services.AddControllers(config =>
 {
