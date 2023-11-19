@@ -13,10 +13,11 @@ namespace CompanyEmployees.Extensions
              services.AddCors(options =>
         {
              options.AddPolicy("CorsPolicy", builder =>
-             builder.WithOrigins("https://example.com")
-                .WithMethods("POST", "GET")
-                .WithHeaders("accept", "content-type"));
-        });
+             builder.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .WithExposedHeaders("X-Pagination"));
+    });
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
             services.AddDbContext<RepositoryContext>(opts =>

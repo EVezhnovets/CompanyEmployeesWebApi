@@ -1,6 +1,7 @@
 ﻿using Contracts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Shared.RequestFeatures;
 
 namespace Repository
 {
@@ -8,12 +9,26 @@ namespace Repository
     {
         public EmployeeRepository(RepositoryContext repositoryContext) : base(repositoryContext) {}
 
-        public async Task<IEnumerable<Employee>> GetEmployeesAsync(Guid companyId, bool trackChanges)
+        public async Task<PagedList<Employee>> GetEmployeesAsync(Guid companyId, EmployeeParameters employeeParameters, bool trackChanges)
         {
+
+            //good for bigger tables with millions of rows
             var employees = await FindByCondition(e => e.CompanyId.Equals(companyId), trackChanges)
                 .OrderBy(e => e.Name)
+                .Skip((employeeParameters.PageNumber - 1) * employeeParameters.PageSize)
+                .Take(employeeParameters.PageSize)
                 .ToListAsync();
-            return employees;
+
+            var count = await FindByCondition(e => e.CompanyId.Equals(companyId), trackChanges).CountAsync();
+
+            return new PagedList<Employee>(employees, count, employeeParameters.PageNumber, employeeParameters.PageSize);
+
+            //good for a small amount of data
+            //var employees = await FindByCondition(e => e.CompanyId.Equals(companyId), trackChanges)
+            //    .OrderBy(e => e.Name)
+            //    .ToListAsync();
+            //return PagedList<Employee>
+            //    .ToPagedList(employees, employeeParameters.PageNumber, employeeParameters.PageSize);
         }
 
         public async Task<Employee> GetEmployeeAsync(Guid companyId, Guid id, bool trackChanges) => await FindByCondition
