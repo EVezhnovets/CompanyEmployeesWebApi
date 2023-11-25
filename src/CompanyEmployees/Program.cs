@@ -1,5 +1,6 @@
 using CompanyEmployees.Extensions;
 using CompanyEmployees.Presentation.ActionFilters;
+using CompanyEmployees.Utility;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +38,8 @@ builder.Services.AddScoped<IDataShaper<EmployeeDto>, DataShaper<EmployeeDto>>();
 //    config.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
 //}).AddXmlDataContractSerializerFormatters();
 builder.Services.AddScoped<ValidationFilterAttribute>();
+builder.Services.AddScoped<ValidateMediaTypeAttribute>();
+builder.Services.AddScoped<IEmployeeLinks, EmployeeLinks>();
 
 builder.Services.AddControllers(config =>
 {
@@ -46,6 +49,8 @@ builder.Services.AddControllers(config =>
 }).AddXmlDataContractSerializerFormatters()
     .AddCustomCSVFormatter()
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
+
+builder.Services.AddCustomMediaTypes();
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
