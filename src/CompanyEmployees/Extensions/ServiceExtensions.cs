@@ -6,6 +6,7 @@ using Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace CompanyEmployees.Extensions
 {
@@ -55,13 +56,24 @@ namespace CompanyEmployees.Extensions
         //public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
         //    services.AddSqlServer<RepositoryContext>((configuration.GetConnectionString("sqlConnection")));
 
+        public static void ConfigureVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(opt =>
+            {
+                opt.ReportApiVersions = true;
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
+
+                //If we want to support query string versioning, we should use a new QueryStringApiVersionReader class instead <-
+                //opt.ApiVersionReader = new QueryStringApiVersionReader("api-version");
+
+            });
+        }
 
         public static void ConfigureIISIntegration(this IServiceCollection services)
         {
-            services.Configure<IISOptions>(options =>
-            {
-
-            });
+            services.Configure<IISOptions>(options =>{});
         }
 
         public static void ConfigureLoggerService(this IServiceCollection services) => 
