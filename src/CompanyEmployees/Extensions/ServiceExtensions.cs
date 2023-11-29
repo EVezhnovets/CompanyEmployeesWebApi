@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Marvin.Cache.Headers;
 
 namespace CompanyEmployees.Extensions
 {
@@ -21,6 +22,9 @@ namespace CompanyEmployees.Extensions
                 .AllowAnyHeader()
                 .WithExposedHeaders("X-Pagination"));
         });
+        
+        public static void ConfigureResponseCaching(this IServiceCollection services) =>
+      services.AddResponseCaching();
 
         public static void AddCustomMediaTypes(this IServiceCollection services)
         {
@@ -78,12 +82,26 @@ namespace CompanyEmployees.Extensions
 
         public static void ConfigureLoggerService(this IServiceCollection services) => 
             services.AddSingleton<ILoggerManager, LoggerManager>();
+        
         public static void ConfigureRepositoryManager(this IServiceCollection services) =>
             services.AddScoped<IRepositoryManager, RepositoryManager>();
+        
         public static void ConfigureServiceManager(this IServiceCollection services) =>
             services.AddScoped<IServiceManager, ServiceManager>();
 
         public static IMvcBuilder AddCustomCSVFormatter(this IMvcBuilder builder) => 
             builder.AddMvcOptions(config => config.OutputFormatters.Add(new CsvOutputFormatter()));
+
+        public static void ConfigureHttpCacheHeaders(this IServiceCollection services) => 
+            services.AddHttpCacheHeaders(
+                (expirationOpt) =>
+                {
+                    expirationOpt.MaxAge = 65;
+                    expirationOpt.CacheLocation = CacheLocation.Private;
+                },
+                (validationOpt) =>
+                {
+                    validationOpt.MustRevalidate = true;
+                });
     }
 }
