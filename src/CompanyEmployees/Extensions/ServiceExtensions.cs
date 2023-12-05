@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Entities.ConfigurationModels;
+using Microsoft.OpenApi.Models;
 
 namespace CompanyEmployees.Extensions
 {
@@ -23,13 +24,13 @@ namespace CompanyEmployees.Extensions
         public static void ConfigureCors(this IServiceCollection services) =>
              services.AddCors(options =>
         {
-             options.AddPolicy("CorsPolicy", builder =>
-             builder.AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .WithExposedHeaders("X-Pagination"));
+            options.AddPolicy("CorsPolicy", builder =>
+            builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .WithExposedHeaders("X-Pagination"));
         });
-        
+
         public static void ConfigureResponseCaching(this IServiceCollection services) => services.AddResponseCaching();
 
         public static void AddCustomMediaTypes(this IServiceCollection services)
@@ -83,22 +84,22 @@ namespace CompanyEmployees.Extensions
 
         public static void ConfigureIISIntegration(this IServiceCollection services)
         {
-            services.Configure<IISOptions>(options =>{});
+            services.Configure<IISOptions>(options => { });
         }
 
-        public static void ConfigureLoggerService(this IServiceCollection services) => 
+        public static void ConfigureLoggerService(this IServiceCollection services) =>
             services.AddSingleton<ILoggerManager, LoggerManager>();
-        
+
         public static void ConfigureRepositoryManager(this IServiceCollection services) =>
             services.AddScoped<IRepositoryManager, RepositoryManager>();
-        
+
         public static void ConfigureServiceManager(this IServiceCollection services) =>
             services.AddScoped<IServiceManager, ServiceManager>();
 
-        public static IMvcBuilder AddCustomCSVFormatter(this IMvcBuilder builder) => 
+        public static IMvcBuilder AddCustomCSVFormatter(this IMvcBuilder builder) =>
             builder.AddMvcOptions(config => config.OutputFormatters.Add(new CsvOutputFormatter()));
 
-        public static void ConfigureHttpCacheHeaders(this IServiceCollection services) => 
+        public static void ConfigureHttpCacheHeaders(this IServiceCollection services) =>
             services.AddHttpCacheHeaders(
                 (expirationOpt) =>
                 {
@@ -121,7 +122,8 @@ namespace CompanyEmployees.Extensions
                     Period = "5m"
                 }
             };
-            services.Configure<IpRateLimitOptions>(opt => {
+            services.Configure<IpRateLimitOptions>(opt =>
+            {
                 opt.GeneralRules = rateLimitRules;
             });
             services.AddSingleton<IRateLimitCounterStore,
@@ -148,8 +150,9 @@ namespace CompanyEmployees.Extensions
 
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtConfiguration = new JwtConfiguration();
-            configuration.Bind(jwtConfiguration.Section, jwtConfiguration);
+            //var jwtConfiguration = new JwtConfiguration();
+            //configuration.Bind(jwtConfiguration.Section, jwtConfiguration);
+            var jwtSettings = configuration.GetSection("JwtSettings");
 
             var secretKey = Environment.GetEnvironmentVariable("SECRET");
             services.AddAuthentication(opt =>
@@ -165,14 +168,74 @@ namespace CompanyEmployees.Extensions
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtConfiguration.ValidIssuer,
-                        ValidAudience = jwtConfiguration.ValidAudience,
+                        //ValidIssuer = jwtConfiguration.ValidIssuer,
+                        //ValidAudience = jwtConfiguration.ValidAudience,
+                        ValidIssuer = jwtSettings["validIssuer"],
+                        ValidAudience = jwtSettings["validAudience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                     };
                 });
         }
 
-        public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration configuration) =>
-            services.Configure<JwtConfiguration>(configuration.GetSection("JwtSettings"));
+        //public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration configuration) =>
+        //    services.Configure<JwtConfiguration>(configuration.GetSection("JwtSettings"));
+        public static void ConfigureSwagger(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(s =>
+            {
+                s.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Code Maze API",
+                    Version = "v1",
+                    Description = "CompanyEmployees API by CodeMaze",
+                    TermsOfService = new Uri("https://example.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "John Doe",
+                        Email = "John.Doe@gmail.com",
+                        Url = new Uri("https://twitter.com/johndoe"),
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "CompanyEmployees API LICX",
+                        Url = new Uri("https://example.com/license"),
+                    }
+
+                });
+                s.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Title = "Code Maze API",
+                    Version = "v2"
+                });
+
+                var xmlFile = $"{typeof(Presentation.AssemblyReference).Assembly.GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                s.IncludeXmlComments(xmlPath);
+
+                s.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Place to add JWT with Bearer",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+                s.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Name = "Bearer",
+                        },
+                        new List<string>()
+                    }
+                });
+            });
+        }
     }
 }
